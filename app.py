@@ -4,7 +4,9 @@ from PIL import ImageColor
 from pathlib import Path
 import bpy
 
-def generate(color1, color2, light_position):
+blender_context = bpy.context
+
+async def generate(color1, color2, light_position):
     rbg1 = ImageColor.getcolor(color1, "RGB")
     rgb2 = ImageColor.getcolor(color2, "RGB")
     print(rbg1, rgb2 , light_position)
@@ -14,19 +16,17 @@ def generate(color1, color2, light_position):
     bpy.ops.object.select_all(action='DESELECT')
     bpy.ops.object.select_by_type(type='MESH')
     bpy.ops.object.delete()
-    print(bpy.ops.object)
+
     # Add a torus
-    bpy.ops.mesh.primitive_torus_add(
+    print(bpy.ops.mesh.primitive_torus_add(
         major_radius=1.5, 
         minor_radius=0.75, 
         major_segments=48*4, 
         minor_segments=12*4, 
         align="WORLD", 
         location=(0, 1, 1),
-    )
-
-    # Assigning the torus to a variable
-    torus = bpy.context.active_object
+    ))
+    torus = blender_context.active_object
 
     # Create a new material and assign it to the torus
     material = bpy.data.materials.new(name="RainbowGradient")
@@ -79,17 +79,17 @@ def generate(color1, color2, light_position):
 
     # Render
     path = "test.png"
-    bpy.context.scene.render.resolution_x = 1000
-    bpy.context.scene.render.resolution_y = 400
-    bpy.context.scene.render.image_settings.file_format = "PNG"
-    bpy.context.scene.render.filepath = path
+    blender_context.scene.render.resolution_x = 1000
+    blender_context.scene.render.resolution_y = 400
+    blender_context.scene.render.image_settings.file_format = "PNG"
+    blender_context.scene.render.filepath = path
     bpy.ops.render.render(write_still=True)
-    bpy.data.images["Render Result"].save_render(filepath=bpy.context.scene.render.filepath)
+    bpy.data.images["Render Result"].save_render(filepath=blender_context.scene.render.filepath)
 
     # display(Image("test_sphere.png"))
 
     # Read the saved image into memory and encode it to base64
-    temp_filepath = Path(bpy.context.scene.render.filepath)
+    temp_filepath = Path(blender_context.scene.render.filepath)
     with temp_filepath.open("rb") as f:
         my_img = base64.b64encode(f.read()).decode("utf-8")
 
