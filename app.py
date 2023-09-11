@@ -114,7 +114,7 @@ def generate(color1, color2, light_position, progress=gr.Progress(track_tqdm=Tru
 
     # bpy.app.handlers.render_pre.append(start_timer)
     bpy.app.handlers.render_stats.append(elapsed)
-    bpy.ops.render.render("INVOKE_DEFAULT", animation=False, write_still=True)
+    bpy.ops.render.render(animation=False, write_still=True)
     pbar.close()
     # bpy.ops.render.render(write_still=True)
     bpy.data.images["Render Result"].save_render(
