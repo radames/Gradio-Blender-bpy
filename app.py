@@ -59,8 +59,8 @@ def generate(
     bpy.ops.mesh.primitive_torus_add(
         major_radius=1.5,
         minor_radius=0.75,
-        major_segments=12,
-        minor_segments=12,
+        major_segments=12*4,
+        minor_segments=12*4,
         align="WORLD",
         location=(0, 1, 1),
         rotation=(torus_X,torus_Y,torus_Z)
@@ -123,8 +123,8 @@ def generate(
     # Render
     with tempfile.NamedTemporaryFile(suffix=".JPEG", delete=False) as f:
         
-        bpy.context.scene.render.resolution_y = 256
-        bpy.context.scene.render.resolution_x = 256
+        bpy.context.scene.render.resolution_y = 512
+        bpy.context.scene.render.resolution_x = 288
         bpy.context.scene.render.image_settings.file_format = "JPEG"
         bpy.context.scene.render.filepath = f.name
 
@@ -150,16 +150,19 @@ def generate(
 
 # generate("#ffffff", "#aaa", 1)
 with gr.Blocks() as demo:
+    gr.Markdown("""# Gradio with Blender bpy
+    based on [kolibril13](https://github.com/kolibril13/ipyblender-experimental)
+    """)
     with gr.Row():
         with gr.Column():
             color1 = gr.ColorPicker(value="#59C173")
             color2 = gr.ColorPicker(value="#5D26C1")
-            camera_X = gr.Slider(minimum=-100, maximum=100, value=5, label="Camera X")
-            camera_Y = gr.Slider(minimum=-100, maximum=100, value=-3, label="Camera Y")
-            camera_Z = gr.Slider(minimum=-100, maximum=100, value=4, label="Camera Z")
             torus_X = gr.Slider(minimum=-pi, maximum=pi, value=0, label="Torus φ")
             torus_Y = gr.Slider(minimum=-pi, maximum=pi, value=-3, label="Torus θ")
             torus_Z = gr.Slider(minimum=-pi, maximum=pi, value=1.5, label="Torus ψ")
+            camera_X = gr.Slider(minimum=-100, maximum=100, value=5, label="Camera X")
+            camera_Y = gr.Slider(minimum=-100, maximum=100, value=-3, label="Camera Y")
+            camera_Z = gr.Slider(minimum=-100, maximum=100, value=4, label="Camera Z")
 
             render_btn = gr.Button("Render")
         with gr.Column(scale=3):
