@@ -4,13 +4,14 @@ from PIL import ImageColor
 from pathlib import Path
 import bpy
 
-blender_context = bpy.context
+def generate(color1, color2, light_position):
+    rgb1 = ImageColor.getcolor(color1, "RGBA")
+    rgb1 = tuple(v/255.0 for v in rgb1)
+    rgb2 = ImageColor.getcolor(color2, "RGBA")
+    rgb2 = tuple(v/255.0 for v in rgb2)
+    print(rgb1, rgb2 , light_position)
 
-async def generate(color1, color2, light_position):
-    rbg1 = ImageColor.getcolor(color1, "RGB")
-    rgb2 = ImageColor.getcolor(color2, "RGB")
-    print(rbg1, rgb2 , light_position)
- 
+
     light_position_normed = light_position / 20
     # Delete all mesh objects from the scene
     bpy.ops.object.select_all(action='DESELECT')
@@ -18,16 +19,19 @@ async def generate(color1, color2, light_position):
     bpy.ops.object.delete()
 
     # Add a torus
-    print(bpy.ops.mesh.primitive_torus_add(
-        major_radius=1.5, 
-        minor_radius=0.75, 
-        major_segments=48*4, 
-        minor_segments=12*4, 
-        align="WORLD", 
+    bpy.ops.mesh.primitive_torus_add(
+        major_radius=1.5,
+        minor_radius=0.75,
+        major_segments=48*4,
+        minor_segments=12*4,
+        align="WORLD",
         location=(0, 1, 1),
-    ))
-    torus = blender_context.active_object
+    )
 
+    # Assigning the torus to a variable
+    # torus = bpy.context.active_object
+    torus = bpy.context.view_layer.objects.active
+    # print(torus)
     # Create a new material and assign it to the torus
     material = bpy.data.materials.new(name="RainbowGradient")
     torus.data.materials.append(material)
@@ -48,7 +52,7 @@ async def generate(color1, color2, light_position):
     ramp.location = (200,0)
 
     ramp.color_ramp.elements[0].color = rgb1
-    ramp.color_ramp.elements[1].color = rbg2
+    ramp.color_ramp.elements[1].color = rgb2
 
     # Add Shader nodes
     bsdf = nodes.new(type="ShaderNodeBsdfPrincipled")
@@ -68,35 +72,36 @@ async def generate(color1, color2, light_position):
 
     # Light
     light = bpy.data.objects["Light"]
-    light.location = (light_position_normed, 0, 2)  # Position the light 
+    light.location = (light_position_normed, 0, 2)  # Position the light
 
     # Camera
     camera = bpy.data.objects["Camera"]
     camera.location = (5, -3, 4)
     camera.data.dof.use_dof = True
     camera.data.dof.focus_distance = 5
-    camera.data.dof.aperture_fstop = 4 
+    camera.data.dof.aperture_fstop = 4
 
     # Render
     path = "test.png"
-    blender_context.scene.render.resolution_x = 1000
-    blender_context.scene.render.resolution_y = 400
-    blender_context.scene.render.image_settings.file_format = "PNG"
-    blender_context.scene.render.filepath = path
+    bpy.context.scene.render.resolution_x = 200
+    bpy.context.scene.render.resolution_y = 100
+    bpy.context.scene.render.image_settings.file_format = "PNG"
+    bpy.context.scene.render.filepath = path
     bpy.ops.render.render(write_still=True)
-    bpy.data.images["Render Result"].save_render(filepath=blender_context.scene.render.filepath)
+    bpy.data.images["Render Result"].save_render(filepath=bpy.context.scene.render.filepath)
 
-    # display(Image("test_sphere.png"))
+    # # display(Image("test_sphere.png"))
 
-    # Read the saved image into memory and encode it to base64
-    temp_filepath = Path(blender_context.scene.render.filepath)
-    with temp_filepath.open("rb") as f:
-        my_img = base64.b64encode(f.read()).decode("utf-8")
+    # # Read the saved image into memory and encode it to base64
+    temp_filepath = Path(bpy.context.scene.render.filepath)
+    # with temp_filepath.open("rb") as f:
+    #     my_img = base64.b64encode(f.read()).decode("utf-8")
+    # print(temp_filepath)
+    return path
 
-    return temp_filepath
-
+# generate("#ffffff", "#aaa", 1)
 with gr.Blocks() as demo:
-    with gr.Row():   
+    with gr.Row():
         with gr.Column():
           color1 = gr.ColorPicker()
           color2 = gr.ColorPicker()
@@ -107,5 +112,5 @@ with gr.Blocks() as demo:
     slider.change(generate, inputs=[color1, color2, slider], outputs=[image], show_progress=False)
 
 
-
-demo.launch(debug=True)
+# bpy.utils.register_class(generate)
+demo.launch(inline=True ,debug=True)
