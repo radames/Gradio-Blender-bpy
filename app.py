@@ -28,7 +28,7 @@ def enable_GPUS():
         print(d["name"])
 
 
-# enable_GPUS()
+enable_GPUS()
 
 # bpy.ops.wm.read_factory_settings(use_empty=True)
 
@@ -47,14 +47,14 @@ def generate(
     rgb1 = tuple(v / 255.0 for v in rgb1)
     rgb2 = ImageColor.getcolor(color2, "RGBA")
     rgb2 = tuple(v / 255.0 for v in rgb2)
-    # bpy.ops.wm.read_homefile(use_empty=True)
 
 
     # Delete all mesh objects from the scene
-    bpy.ops.object.select_all(action="DESELECT")
-    bpy.ops.object.select_by_type(type="MESH")
-    bpy.ops.object.delete()
-
+    for obj in bpy.context.scene.objects:
+    # If the object is of MESH type
+      if obj.type == 'MESH':
+          # Delete the object
+          bpy.data.objects.remove(obj, do_unlink=True)
     # Add a torus
     bpy.ops.mesh.primitive_torus_add(
         major_radius=1.5,
@@ -127,14 +127,16 @@ def generate(
         bpy.context.scene.render.resolution_x = 256
         bpy.context.scene.render.image_settings.file_format = "JPEG"
         bpy.context.scene.render.filepath = f.name
-        bpy.context.scene.frame_current = bpy.context.scene.frame_end
 
-        with tqdm(total=bpy.context.scene.frame_end) as pbar:
+        with tqdm() as pbar:
 
           def elapsed(dummy):
             pbar.update()
 
           bpy.app.handlers.render_stats.append(elapsed)
+          bpy.context.scene.frame_set(1)
+          bpy.context.scene.frame_current = 1
+
           # bpy.ops.render.render(animation=False, write_still=True)
           # bpy.ops.render.render(animation=False, write_still=True)
           bpy.ops.render.render(animation=False, write_still=True)
