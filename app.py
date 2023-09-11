@@ -9,40 +9,41 @@ bpy.data.scenes[0].render.engine = "CYCLES"
 # Set the device_type
 bpy.context.preferences.addons[
     "cycles"
-].preferences.compute_device_type = "CUDA"  # or "OPENCL"
+].preferences.compute_device_type = "CUDA" # or "OPENCL"
 
 # Set the device and feature set
 bpy.context.scene.cycles.device = "GPU"
 
 for scene in bpy.data.scenes:
-    scene.cycles.device = "GPU"
+    scene.cycles.device = 'GPU'
 
 bpy.context.preferences.addons["cycles"].preferences.get_devices()
 print(bpy.context.preferences.addons["cycles"].preferences.compute_device_type)
 for d in bpy.context.preferences.addons["cycles"].preferences.devices:
-    d["use"] = True  # Using all devices, include GPU and CPU
+    d["use"] = True # Using all devices, include GPU and CPU
     print(d["name"])
 
 
 def generate(color1, color2, light_position, progress=gr.Progress(track_tqdm=True)):
     rgb1 = ImageColor.getcolor(color1, "RGBA")
-    rgb1 = tuple(v / 255.0 for v in rgb1)
+    rgb1 = tuple(v/255.0 for v in rgb1)
     rgb2 = ImageColor.getcolor(color2, "RGBA")
-    rgb2 = tuple(v / 255.0 for v in rgb2)
-    print(rgb1, rgb2, light_position)
+    rgb2 = tuple(v/255.0 for v in rgb2)
+    print(rgb1, rgb2 , light_position)
+
 
     light_position_normed = light_position / 20
     # Delete all mesh objects from the scene
-    bpy.ops.object.select_all(action="DESELECT")
-    bpy.ops.object.select_by_type(type="MESH")
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.ops.object.select_by_type(type='MESH')
     bpy.ops.object.delete()
 
     # Add a torus
     bpy.ops.mesh.primitive_torus_add(
         major_radius=1.5,
         minor_radius=0.75,
-        major_segments=48 * 4,
-        minor_segments=12 * 4,
+        major_segments=48*4,
+        minor_segments=12*4,
         align="WORLD",
         location=(0, 1, 1),
     )
@@ -63,22 +64,22 @@ def generate(color1, color2, light_position, progress=gr.Progress(track_tqdm=Tru
 
     # Add a Gradient Texture and set it to a color ramp of a rainbow
     gradient = nodes.new(type="ShaderNodeTexGradient")
-    gradient.gradient_type = "LINEAR"
-    gradient.location = (0, 0)
+    gradient.gradient_type = 'LINEAR'
+    gradient.location = (0,0)
 
     ramp = nodes.new(type="ShaderNodeValToRGB")
-    ramp.color_ramp.interpolation = "LINEAR"
-    ramp.location = (200, 0)
+    ramp.color_ramp.interpolation = 'LINEAR'
+    ramp.location = (200,0)
 
     ramp.color_ramp.elements[0].color = rgb1
     ramp.color_ramp.elements[1].color = rgb2
 
     # Add Shader nodes
     bsdf = nodes.new(type="ShaderNodeBsdfPrincipled")
-    bsdf.location = (400, 0)
+    bsdf.location = (400,0)
 
     output = nodes.new(type="ShaderNodeOutputMaterial")
-    output.location = (600, 0)
+    output.location = (600,0)
 
     # Connect the nodes
     material.node_tree.links.new
@@ -102,46 +103,34 @@ def generate(color1, color2, light_position, progress=gr.Progress(track_tqdm=Tru
 
     # Render
     path = "test.png"
-    bpy.context.scene.render.resolution_y = 256
-    bpy.context.scene.render.resolution_x = 256
+    bpy.context.scene.render.resolution_y = 128
+    bpy.context.scene.render.resolution_x = 128
     bpy.context.scene.render.image_settings.file_format = "PNG"
     bpy.context.scene.render.filepath = path
 
-    pbar = tqdm()
-
-    def elapsed(dummy):
-        pbar.update()
-
-    # bpy.app.handlers.render_pre.append(start_timer)
-    bpy.app.handlers.render_stats.append(elapsed)
-    bpy.ops.render.render(animation=False, write_still=True)
-    pbar.close()
-    # bpy.ops.render.render(write_still=True)
-    bpy.data.images["Render Result"].save_render(
-        filepath=bpy.context.scene.render.filepath
-    )
-
-    # # display(Image("test_sphere.png"))
-
-    # # Read the saved image into memory and encode it to base64
-    temp_filepath = Path(bpy.context.scene.render.filepath)
-
-    # bpy.app.handlers.render_pre.clear()
-    bpy.app.handlers.render_stats.clear()
-    return path
-
+    with tqdm(total=bpy.context.scene.frame_end) as pbar: 
+      def elapsed(dummy):
+          pbar.update()
+      
+      bpy.app.handlers.render_stats.append(elapsed)
+      bpy.ops.render.render(animation=False, write_still=True)
+      bpy.data.images["Render Result"].save_render(filepath=bpy.context.scene.render.filepath)
+      temp_filepath = Path(bpy.context.scene.render.filepath)
+      bpy.app.handlers.render_stats.clear()
+      return path
 
 # generate("#ffffff", "#aaa", 1)
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
-            color1 = gr.ColorPicker()
-            color2 = gr.ColorPicker()
-            slider = gr.Slider(minimum=0, maximum=100, value=1)
+          color1 = gr.ColorPicker()
+          color2 = gr.ColorPicker()
+          slider = gr.Slider(minimum=0, maximum=100, value=1)
+          render_btn = gr.Button("Render")
         with gr.Column(scale=3):
-            image = gr.Image(type="filepath")
+          image = gr.Image(type="filepath")
 
-    slider.change(generate, inputs=[color1, color2, slider], outputs=[image])
+    render_btn.click(generate, inputs=[color1, color2, slider], outputs=[image])
 
 
 # bpy.utils.register_class(generate)
