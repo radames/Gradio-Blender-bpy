@@ -188,5 +188,5 @@ with gr.Blocks() as demo:
         outputs=[image],
     )
 
-demo.queue()
+demo.queue(concurrency_count=1)
 demo.launch(debug=True, inline=True)
