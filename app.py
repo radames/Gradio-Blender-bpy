@@ -1,5 +1,4 @@
 import gradio as gr
-import base64
 from PIL import ImageColor
 from pathlib import Path
 import bpy
@@ -38,6 +37,7 @@ def generate(
     camera_X,
     camera_Y,
     camera_Z,
+    fov,
     torus_X,
     torus_Y,
     torus_Z,
@@ -117,14 +117,15 @@ def generate(
     camera = bpy.data.objects["Camera"]
     camera.location = (camera_X, camera_Y, camera_Z)
     camera.data.dof.use_dof = True
-    camera.data.dof.focus_distance = 5
+    camera.data.dof.focus_distance = fov
     camera.data.dof.aperture_fstop = 4
+    camera.data.type = 'PERSP'
   
     # Render
     with tempfile.NamedTemporaryFile(suffix=".JPEG", delete=False) as f:
         
-        bpy.context.scene.render.resolution_y = 512
-        bpy.context.scene.render.resolution_x = 288
+        bpy.context.scene.render.resolution_y = 288
+        bpy.context.scene.render.resolution_x = 512
         bpy.context.scene.render.image_settings.file_format = "JPEG"
         bpy.context.scene.render.filepath = f.name
 
@@ -160,6 +161,7 @@ with gr.Blocks() as demo:
             torus_X = gr.Slider(minimum=-pi, maximum=pi, value=0, label="Torus φ")
             torus_Y = gr.Slider(minimum=-pi, maximum=pi, value=-3, label="Torus θ")
             torus_Z = gr.Slider(minimum=-pi, maximum=pi, value=1.5, label="Torus ψ")
+            fov = gr.Slider(minimum=-100, maximum=100, value=5, label="FOV")
             camera_X = gr.Slider(minimum=-100, maximum=100, value=5, label="Camera X")
             camera_Y = gr.Slider(minimum=-100, maximum=100, value=-3, label="Camera Y")
             camera_Z = gr.Slider(minimum=-100, maximum=100, value=4, label="Camera Z")
@@ -176,6 +178,7 @@ with gr.Blocks() as demo:
             camera_X,
             camera_Y,
             camera_Z,
+            fov,
             torus_X,
             torus_Y,
             torus_Z,
