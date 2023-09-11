@@ -1,4 +1,5 @@
 import gradio as gr
+import base64
 from PIL import ImageColor
 from pathlib import Path
 import bpy
@@ -117,8 +118,9 @@ def generate(
     camera = bpy.data.objects["Camera"]
     camera.location = (camera_X, camera_Y, camera_Z)
     camera.data.dof.use_dof = True
-    camera.data.dof.focus_distance = fov
+    camera.data.dof.focus_distance = 5
     camera.data.dof.aperture_fstop = 4
+    camera.data.angle = fov
     camera.data.type = 'PERSP'
   
     # Render
@@ -161,7 +163,7 @@ with gr.Blocks() as demo:
             torus_X = gr.Slider(minimum=-pi, maximum=pi, value=0, label="Torus φ")
             torus_Y = gr.Slider(minimum=-pi, maximum=pi, value=-3, label="Torus θ")
             torus_Z = gr.Slider(minimum=-pi, maximum=pi, value=1.5, label="Torus ψ")
-            fov = gr.Slider(minimum=-100, maximum=100, value=5, label="FOV")
+            fov = gr.Slider(minimum=0.0, maximum=pi, value=0.0, label="FOV")
             camera_X = gr.Slider(minimum=-100, maximum=100, value=5, label="Camera X")
             camera_Y = gr.Slider(minimum=-100, maximum=100, value=-3, label="Camera Y")
             camera_Z = gr.Slider(minimum=-100, maximum=100, value=4, label="Camera Z")
