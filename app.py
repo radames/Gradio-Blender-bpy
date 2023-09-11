@@ -46,7 +46,6 @@ def generate(
     rgb2 = ImageColor.getcolor(color2, "RGBA")
     rgb2 = tuple(v / 255.0 for v in rgb2)
 
-    light_position_normed = light_position / 20
     # Delete all mesh objects from the scene
     bpy.ops.object.select_all(action="DESELECT")
     bpy.ops.object.select_by_type(type="MESH")
@@ -110,7 +109,7 @@ def generate(
 
     # Light
     light = bpy.data.objects["Light"]
-    light.location = (light_position_normed, 0, 2)  # Position the light
+    light.location = (1, 0, 2)  # Position the light
 
     # Camera
     camera = bpy.data.objects["Camera"]
