@@ -121,8 +121,8 @@ def generate(
 
     # Render
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-        bpy.context.scene.render.resolution_y = 1024
-        bpy.context.scene.render.resolution_x = 1024
+        bpy.context.scene.render.resolution_y = 256
+        bpy.context.scene.render.resolution_x = 256
         bpy.context.scene.render.image_settings.file_format = "PNG"
         bpy.context.scene.render.filepath = f.name
 
