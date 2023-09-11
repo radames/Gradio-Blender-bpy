@@ -163,7 +163,7 @@ with gr.Blocks() as demo:
             torus_X = gr.Slider(minimum=-pi, maximum=pi, value=0, label="Torus φ")
             torus_Y = gr.Slider(minimum=-pi, maximum=pi, value=-3, label="Torus θ")
             torus_Z = gr.Slider(minimum=-pi, maximum=pi, value=1.5, label="Torus ψ")
-            fov = gr.Slider(minimum=0.0, maximum=pi, value=0.0, label="FOV")
+            fov = gr.Slider(minimum=0.0, maximum=pi, value=pi/3, label="FOV")
             camera_X = gr.Slider(minimum=-100, maximum=100, value=5, label="Camera X")
             camera_Y = gr.Slider(minimum=-100, maximum=100, value=-3, label="Camera Y")
             camera_Z = gr.Slider(minimum=-100, maximum=100, value=4, label="Camera Z")
