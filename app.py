@@ -5,6 +5,7 @@ from pathlib import Path
 import bpy
 from tqdm import tqdm
 from math import pi
+import tempfile
 
 
 def enable_GPUS():
@@ -55,8 +56,8 @@ def generate(
     bpy.ops.mesh.primitive_torus_add(
         major_radius=1.5,
         minor_radius=0.75,
-        major_segments=2**7,
-        minor_segments=2**5,
+        major_segments=48 * 4,
+        minor_segments=12 * 4,
         align="WORLD",
         location=(0, 1, 1),
     )
@@ -109,7 +110,7 @@ def generate(
 
     # Light
     light = bpy.data.objects["Light"]
-    light.location = (1, 0, 2)  # Position the light
+    light.location = (0.1, 0, 2)  # Position the light
 
     # Camera
     camera = bpy.data.objects["Camera"]
@@ -119,25 +120,24 @@ def generate(
     camera.data.dof.aperture_fstop = 4
 
     # Render
-    path = "test.png"
-    bpy.context.scene.render.resolution_y = 256
-    bpy.context.scene.render.resolution_x = 256
-    bpy.context.scene.render.image_settings.file_format = "PNG"
-    bpy.context.scene.render.filepath = path
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+        bpy.context.scene.render.resolution_y = 1024
+        bpy.context.scene.render.resolution_x = 1024
+        bpy.context.scene.render.image_settings.file_format = "PNG"
+        bpy.context.scene.render.filepath = f.name
 
-    with tqdm(total=bpy.context.scene.frame_end) as pbar:
+        with tqdm(total=bpy.context.scene.frame_end) as pbar:
 
-        def elapsed(dummy):
+          def elapsed(dummy):
             pbar.update()
 
-        bpy.app.handlers.render_stats.append(elapsed)
-        bpy.ops.render.render(animation=False, write_still=True)
-        bpy.data.images["Render Result"].save_render(
-            filepath=bpy.context.scene.render.filepath
-        )
-        temp_filepath = Path(bpy.context.scene.render.filepath)
-        bpy.app.handlers.render_stats.clear()
-        return path
+          bpy.app.handlers.render_stats.append(elapsed)
+          bpy.ops.render.render(animation=False, write_still=True)
+          bpy.data.images["Render Result"].save_render(
+              filepath=bpy.context.scene.render.filepath
+          )
+          bpy.app.handlers.render_stats.clear()
+          return f.name
 
 
 # generate("#ffffff", "#aaa", 1)
@@ -147,16 +147,12 @@ with gr.Blocks() as demo:
             color1 = gr.ColorPicker(value="#59C173")
             color2 = gr.ColorPicker(value="#5D26C1")
             camera_X = gr.Slider(minimum=-100, maximum=100, value=5, label="Camera X")
-            camera_Y = gr.Slider(minimum=-100, maximum=100, value=-3, label="Camera X")
-            camera_Z = gr.Slider(minimum=-100, maximum=100, value=4, label="Camera X")
-            torus_X = gr.Slider(
-                minimum=-2 * pi, maximum=2 * pi, value=0, label="Torus φ"
-            )
-            torus_Y = gr.Slider(
-                minimum=-2 * pi, maximum=2 * pi, value=0, label="Torus θ"
-            )
+            camera_Y = gr.Slider(minimum=-100, maximum=100, value=-3, label="Camera Y")
+            camera_Z = gr.Slider(minimum=-100, maximum=100, value=4, label="Camera Z")
+            torus_X = gr.Slider(minimum=-pi, maximum=pi, value=0, label="Torus φ")
+            torus_Y = gr.Slider(minimum=-pi, maximum=pi, value=0, label="Torus θ")
             torus_Z = gr.Slider(
-                minimum=-2 * pi, maximum=2 * pi, value=pi / 2, label="Torus ψ"
+                minimum=-pi, maximum=2 * pi, value=pi / 2, label="Torus ψ"
             )
 
             render_btn = gr.Button("Render")
@@ -178,7 +174,5 @@ with gr.Blocks() as demo:
         outputs=[image],
     )
 
-
-# bpy.utils.register_class(generate)
 demo.queue()
 demo.launch(debug=True, inline=True)
