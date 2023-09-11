@@ -83,8 +83,8 @@ def generate(color1, color2, light_position):
 
     # Render
     path = "test.png"
-    bpy.context.scene.render.resolution_x = 200
-    bpy.context.scene.render.resolution_y = 100
+    bpy.context.scene.render.resolution_x = 1000
+    bpy.context.scene.render.resolution_y = 400
     bpy.context.scene.render.image_settings.file_format = "PNG"
     bpy.context.scene.render.filepath = path
     bpy.ops.render.render(write_still=True)
