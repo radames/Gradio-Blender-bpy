@@ -156,7 +156,7 @@ with gr.Blocks() as demo:
             torus_Z = gr.Slider(minimum=-pi, maximum=pi, value=pi / 2, label="Torus ψ")
 
             render_btn = gr.Button("Render")
-        with gr.Column(scale=3):
+        with gr.Column():
             image = gr.Image(type="filepath")
 
     render_btn.click(
